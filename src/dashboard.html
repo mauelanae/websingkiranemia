@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Data</title>
+    <link href="./output.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-6 text-center">Data Singkir Anemia</h1>
+        <div class="flex justify-between mb-2 gap-2 flex-wrap">
+            <div class="flex-1 mb-2 md:mb-0">
+                <input type="text" id="search-input" placeholder="Search..."
+                    class="px-4 py-2 rounded-3xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#01A4C0]">
+            </div>
+            <div>
+                <button id="export-excel"
+                    class="bg-[#01A4C0] hover:bg-[#0188a3] text-white px-4 py-2 rounded-3xl shadow">Export ke
+                    Excel</button>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white rounded-lg shadow" id="dashboard-table">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 border-b">No</th>
+                        <th class="py-2 px-4 border-b">Nama</th>
+                        <th class="py-2 px-4 border-b">Tempat, Tanggal Lahir</th>
+                        <th class="py-2 px-4 border-b">Usia</th>
+                        <th class="py-2 px-4 border-b">Umur Kehamilan (minggu)</th>
+                        <th class="py-2 px-4 border-b">Nama Suami</th>
+                        <th class="py-2 px-4 border-b">Alamat</th>
+                        <th class="py-2 px-4 border-b">No HP</th>
+                        <th class="py-2 px-4 border-b">Nilai Hb</th>
+                        <th class="py-2 px-4 border-b">Status</th>
+                        <th class="py-2 px-4 border-b">Tanggal Hb</th>
+                        <th class="py-2 px-4 border-b" style="min-width: 400px; width: 400px;">Tips</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+        import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCjTDV7aEs2X9WEBqBQ5ydqVVqVn5F5Lbk",
+            authDomain: "singkiranemia.firebaseapp.com",
+            databaseURL: "https://singkiranemia-default-rtdb.firebaseio.com",
+            projectId: "singkiranemia",
+            storageBucket: "singkiranemia.firebasestorage.app",
+            messagingSenderId: "1084321478178",
+            appId: "1:1084321478178:web:041668eddda59b3e46bc7b",
+            measurementId: "G-SMPDBPQW6E"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const dataRef = ref(db, 'users');
+        const tableBody = document.getElementById('data-table');
+        let usersWithHb = [];
+        let filteredUsers = [];
+
+        function renderTable(dataList) {
+            tableBody.innerHTML = '';
+            let no = 1;
+            dataList.forEach(data => {
+                tableBody.innerHTML += `
+                    <tr>
+                        <td class="py-2 px-4 border-b">${no++}</td>
+                        <td class="py-2 px-4 border-b">${data.nama || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.ttl || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.usia || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.umur_kehamilan || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.nama_suami || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.alamat || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.nohp || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.nilaiHb || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.status || '-'}</td>
+                        <td class="py-2 px-4 border-b">${data.tanggal || '-'}</td>
+                        <td class="py-2 px-4 border-b text-sm text-justify whitespace-pre-line" style="min-width: 400px; width: 400px;">
+                            ${(data.tips || '-').replace(/\n/g, '<br>')}
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        onValue(dataRef, async (snapshot) => {
+            let promises = [];
+            snapshot.forEach(childSnapshot => {
+                const data = childSnapshot.val();
+                const userId = childSnapshot.key;
+
+                const hbPromise = get(ref(db, `users/${userId}/hb`)).then(hbSnap => {
+                    let nilaiHb = '-';
+                    let status = '-';
+                    let tanggal = '-';
+                    let tips = '-';
+                    if (hbSnap.exists()) {
+                        const hbData = hbSnap.val();
+                        const hbList = Object.values(hbData);
+                        hbList.sort((a, b) => (b.tanggal || '') > (a.tanggal || '') ? 1 : -1);
+                        const latestHb = hbList[0];
+                        if (latestHb) {
+                            nilaiHb = latestHb.nilaiHb ?? '-';
+                            status = latestHb.status ?? '-';
+                            tanggal = latestHb.tanggal ?? '-';
+                            if (latestHb.tips && Array.isArray(latestHb.tips)) {
+                                tips = latestHb.tips.map((tip, idx) => `${idx + 1}. ${tip}`).join('\n');
+                            }
+                        }
+                    }
+                    return {
+                        ...data,
+                        nilaiHb,
+                        status,
+                        tanggal,
+                        tips
+                    };
+                });
+                promises.push(hbPromise);
+            });
+
+            usersWithHb = await Promise.all(promises);
+            filteredUsers = usersWithHb;
+            renderTable(filteredUsers);
+        });
+
+        document.getElementById('search-input').addEventListener('input', function () {
+            const keyword = this.value.trim().toLowerCase();
+            if (!keyword) {
+                filteredUsers = usersWithHb;
+            } else {
+                filteredUsers = usersWithHb.filter(data =>
+                    (data.nama || '').toLowerCase().includes(keyword) ||
+                    (data.alamat || '').toLowerCase().includes(keyword) ||
+                    (data.nohp || '').toLowerCase().includes(keyword)
+                );
+            }
+            renderTable(filteredUsers);
+        });
+
+        document.getElementById('export-excel').addEventListener('click', function () {
+            const wsData = [
+                ['No', 'Nama', 'Tempat, Tanggal Lahir', 'Usia', 'Umur Kehamilan (minggu)', 'Nama Suami', 'Alamat', 'No HP', 'Nilai Hb', 'Status', 'Tanggal Hb', 'Tips']
+            ];
+            filteredUsers.forEach((data, idx) => {
+                wsData.push([
+                    idx + 1,
+                    data.nama || '-',
+                    data.ttl || '-',
+                    data.usia || '-',
+                    data.umur_kehamilan || '-',
+                    data.nama_suami || '-',
+                    data.alamat || '-',
+                    data.nohp || '-',
+                    data.nilaiHb || '-',
+                    data.status || '-',
+                    data.tanggal || '-',
+                    data.tips || '-'
+                ]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Dashboard");
+            XLSX.writeFile(wb, "Data Singkir Anemia.xlsx");
+            alert("Data berhasil diekspor ke Excel.");
+        });
+    </script>
+</body>
+
+</html>

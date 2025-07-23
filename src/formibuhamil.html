@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Formulir Ibu Hamil</title>
+  <link href="./output.css" rel="stylesheet">
+</head>
+
+<body class="min-h-screen flex items-center justify-center">
+  <div class="bg-white p-4 sm:p-8 w-full max-w-md sm:max-w-2xl" id="form-container">
+    <h1 class="text-2xl sm:text-3xl font-semibold text-center mb-6 sm:mb-8">Formulir Ibu Hamil</h1>
+    <form id="formHamil" class="space-y-4">
+      <div>
+        <label for="Nama" class="block text-black text-sm font-medium mb-2">Nama Lengkap</label>
+        <input type="text" id="Nama" name="Nama"
+          class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0"
+          required>
+      </div>
+      <div class="flex sm:flex-row gap-4">
+        <div class="flex-1">
+          <label for="Ttl" class="block text-black text-sm font-medium mb-2">Tempat, Tanggal Lahir</label>
+          <input type="text" id="Ttl" name="Ttl"
+            class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 mb-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0"
+            placeholder="Contoh: Jakarta" required>
+          <input type="date" id="TanggalLahir"
+            class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0">
+        </div>
+        <div class="flex-1">
+          <label for="Usia" class="block text-black text-sm font-medium mb-2">Usia</label>
+          <input type="text" id="Usia" name="Usia"
+            class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0"
+            readonly required>
+        </div>
+      </div>
+
+      <!-- Kolom Baru: Umur Kehamilan -->
+      <div>
+        <label for="UmurKehamilan" class="block text-black text-sm font-medium mb-2">
+          Umur Kehamilan Ibu (minggu)
+        </label>
+        <input type="number" id="UmurKehamilan" name="UmurKehamilan" min="0" max="42"
+          class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0"
+          required>
+      </div>
+      <!-- End Kolom Baru -->
+
+      <div>
+        <label for="Nama_suami" class="block text-black text-sm font-medium mb-2">Nama Suami</label>
+        <input type="text" id="Nama_suami" name="Nama_suami"
+          class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0"
+          required>
+      </div>
+      <div>
+        <label for="Alamat" class="block text-black text-sm font-medium mb-2">Alamat</label>
+        <textarea id="Alamat" name="Alamat"
+          class="w-full bg-[#E4E4E4] rounded-3xl px-3 py-4 sm:py-6 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0 resize-none"
+          rows="3" required></textarea>
+      </div>
+      <div>
+        <label for="Nohp" class="block text-black text-sm font-medium mb-2">Nomor HP</label>
+        <input type="tel" id="Nohp" name="Nohp"
+          class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0"
+          required>
+      </div>
+      <div class="flex gap-2 items-center justify-center mx-auto">
+        <input type="checkbox" id="Agreement" name="setuju" class="w-5 h-5 sm:w-6 sm:h-6 rounded-md">
+        <label for="Agreement" class="text-xs sm:text-sm text-black">Saya bersedia data saya digunakan untuk
+          penelitian dan dijaga kerahasiaannya.</label>
+      </div>
+      <div class="flex justify-center">
+        <button type="submit" id="AddBtn"
+          class="bg-[#01A4C0] text-white text-sm md:text-lg px-26 md:px-10 py-2 rounded-full font-bold hover:bg-[#0188a3] transition-all">Lanjutkan</button>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <div id="success-modal" class="fixed inset-0 items-center justify-center bg-black bg-opacity-40 z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-8 max-w-sm w-full flex flex-col items-center">
+      <svg class="w-16 h-16 text-green-500 mb-4" fill="none" stroke="currentColor" stroke-width="2"
+        viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" />
+        <path stroke-linecap="round" stroke-linejoin="round" d="M8 12l2 2l4-4" />
+      </svg>
+      <h2 class="text-xl font-semibold mb-2 text-center">Data Berhasil Ditambahkan!</h2>
+      <p class="text-gray-600 mb-6 text-center">Terima kasih telah mengisi formulir. Anda akan diarahkan ke halaman cek
+        HB (g/dL).</p>
+      <button id="success-ok-btn"
+        class="bg-[#01A4C0] text-white px-8 py-2 rounded-full font-bold hover:bg-[#0188a3] transition-all">
+        OK
+      </button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjTDV7aEs2X9WEBqBQ5ydqVVqVn5F5Lbk",
+      authDomain: "singkiranemia.firebaseapp.com",
+      databaseURL: "https://singkiranemia-default-rtdb.firebaseio.com",
+      projectId: "singkiranemia",
+      storageBucket: "singkiranemia.firebasestorage.app",
+      messagingSenderId: "1084321478178",
+      appId: "1:1084321478178:web:041668eddda59b3e46bc7b",
+      measurementId: "G-SMPDBPQW6E"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Hitung usia otomatis dari tanggal lahir
+    document.getElementById("TanggalLahir").addEventListener("change", function () {
+      const tgl = this.value;
+      if (tgl) {
+        const today = new Date();
+        const birthDate = new Date(tgl);
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const m = today.getMonth() - birthDate.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+        document.getElementById("Usia").value = age;
+        // Otomatis isi field Ttl jika kosong
+        const tempat = document.getElementById("Ttl").value.split(",")[0] || "";
+        document.getElementById("Ttl").value = tempat ? `${tempat}, ${tgl}` : tgl;
+      }
+    });
+
+    document.getElementById("formHamil").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const Nama = document.getElementById("Nama").value;
+      const Ttl = document.getElementById("Ttl").value;
+      const Usia = document.getElementById("Usia").value;
+      const UmurKehamilan = document.getElementById("UmurKehamilan").value; // Kolom baru
+      const Nama_suami = document.getElementById("Nama_suami").value;
+      const Alamat = document.getElementById("Alamat").value;
+      const Nohp = document.getElementById("Nohp").value;
+      const Agreement = document.getElementById("Agreement").checked;
+
+      if (Nama && Ttl && Usia && UmurKehamilan && Nama_suami && Alamat && Nohp && Agreement) {
+        const userId = Date.now();
+        localStorage.setItem("userId", userId);
+        set(ref(db, 'users/' + userId), {
+          nama: Nama,
+          ttl: Ttl,
+          usia: Usia,
+          umur_kehamilan: UmurKehamilan, // Simpan ke database
+          nama_suami: Nama_suami,
+          alamat: Alamat,
+          nohp: Nohp,
+          agreement: Agreement
+        }).then(() => {
+          // Show success modal
+          document.getElementById("success-modal").classList.remove("hidden");
+          document.getElementById("success-modal").classList.add("flex");
+          // Optionally hide the form
+          document.getElementById("form-container").classList.add("opacity-30", "pointer-events-none");
+          // Redirect after OK
+          document.getElementById("success-ok-btn").onclick = function () {
+            window.location.href = "/src/inputhb.html";
+          };
+        }).catch((error) => {
+          alert("Gagal menyimpan data: " + error.message);
+        });
+      } else {
+        alert("Lengkapi semua data dan centang persetujuan.");
+      }
+    });
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Singkir Anemia</title>
+  <link href="./output.css" rel="stylesheet">
+</head>
+
+<body class="min-h-screen bg-white flex flex-col items-center justify-center px-4 ">
+
+  <div class="flex items-center justify-center w-full mt-10 md:mt-20">
+    <img src="../assets/Icon1.svg" alt="logo" class="w-80 md:w-72" />
+  </div>
+
+  <div class="mt-6 flex md:flex-row gap-3 w-full max-w-sm justify-center items-center">
+    <button onclick="openPopup()"
+      class="w-full md:w-auto text-center bg-[#01A4C0] text-white font-bold text-base md:text-lg py-3 px-10 md:px-28 rounded-3xl shadow-md hover:bg-[#0188a3] transition-all duration-300">
+      Start
+    </button>
+    <button onclick="window.location.href='/src/login.html'"
+      class="w-full md:w-auto flex justify-center items-center bg-[#01A4C0] text-white font-bold py-3 px-6 rounded-full shadow-md hover:bg-[#0188a3] transition-all duration-300">
+      <img src="../assets/iconadmin.svg" alt="iconadmin" class="w-6 h-6" />
+    </button>
+  </div>
+
+  <div id="confirmationPopup" class="hidden fixed inset-0 items-center justify-center bg-black bg-opacity-40 z-50 px-4">
+    <div class="bg-white rounded-xl shadow-lg p-6 md:p-8 w-full max-w-md text-center overflow-y-auto max-h-[90vh]">
+      <h2 class="text-sm md:text-base font-semibold mb-4">
+        Saya telah menerima penjelasan mengenai penelitian ini dan memahami hal-hal berikut:
+      </h2>
+      <ul class="text-left text-xs md:text-sm mb-4 list-decimal list-inside space-y-2">
+        <li>Saya bersedia secara sukarela untuk menjadi responden dalam penelitian ini.</li>
+        <li>Penelitian ini bertujuan untuk mengetahui efektivitas penggunaan aplikasi edukasi dalam mencegah anemia pada
+          ibu hamil.</li>
+        <li>Partisipasi saya melibatkan pengisian data pribadi dan kadar hemoglobin (Hb) secara berkala melalui aplikasi
+          ini.</li>
+        <li>Tidak ada risiko langsung dalam mengikuti penelitian ini.</li>
+        <li>Data yang saya berikan akan dijaga kerahasiaannya, hanya digunakan untuk keperluan penelitian, dan tidak
+          akan dipublikasikan secara pribadi.</li>
+        <li>Saya tidak perlu membuat akun atau memasukkan identitas login untuk menggunakan aplikasi ini.</li>
+        <li>Saya bebas untuk menghentikan partisipasi kapan saja tanpa konsekuensi apapun.</li>
+      </ul>
+      <p class="text-xs md:text-sm mb-4 font-semibold">
+        Dengan menekan tombol "Setuju & Lanjutkan", saya menyatakan bahwa saya memahami dan menyetujui untuk ikut serta
+        dalam penelitian ini.
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center gap-3">
+        <button onclick="confirmStart()"
+          class="bg-[#01A4C0] text-white px-4 py-2 rounded-full font-bold hover:bg-[#0188a3] transition-all text-sm md:text-base">
+          Setuju & Lanjutkan
+        </button>
+        <button onclick="closePopup()"
+          class="bg-gray-200 text-gray-700 px-4 py-2 rounded-full font-bold hover:bg-gray-300 transition-all text-sm md:text-base">
+          Batal
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    function openPopup() {
+      const popup = document.getElementById('confirmationPopup');
+      popup.classList.remove('hidden');
+      popup.classList.add('flex');
+    }
+
+    function closePopup() {
+      const popup = document.getElementById('confirmationPopup');
+      popup.classList.remove('flex');
+      popup.classList.add('hidden');
+    }
+
+    function confirmStart() {
+      window.location.href = "/src/edukasi.html";
+    }
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Admin</title>
+  <link href="./output.css" rel="stylesheet">
+
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="w-full max-w-sm bg-white p-8">
+    <h2 class="text-2xl font-bold text-center mb-6" id="formTitle">Login Admin</h2>
+    <div id="error" class="text-red-500 text-center mb-4"></div>
+    <!-- Login Form -->
+    <form id="loginForm" autocomplete="off" class="space-y-4">
+      <div>
+        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+        <input type="text" id="username" required class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0">
+      </div>
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <input type="password" id="password" required class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0">
+      </div>
+      <button type="submit" class="w-full py-2 px-4 bg-[#01A4C0] text-white rounded-full hover:bg-[#0188a3] transition font-bold">Login</button>
+      <p class="text-center text-sm mt-2">
+        Belum punya akun? <a href="#" id="showRegister" class="text-[#01A4C0] hover:underline">Daftar Admin Baru</a>
+      </p>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm" autocomplete="off" class="space-y-4 hidden">
+      <div>
+        <label for="reg_username" class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+        <input type="text" id="reg_username" required class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0">
+      </div>
+      <div>
+        <label for="reg_password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+        <input type="password" id="reg_password" required class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400 border-0">
+      </div>
+      <button type="submit" class="w-full py-2 px-4 bg-[#01A4C0] text-white rounded-full hover:bg-[#0188a3] transition">Daftar</button>
+      <p class="text-center text-sm mt-2">
+        Sudah punya akun? <a href="#" id="showLogin" class="text-[#01A4C0] hover:underline">Login di sini</a>
+      </p>
+    </form>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getDatabase, ref, get, set, child } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjTDV7aEs2X9WEBqBQ5ydqVVqVn5F5Lbk",
+      authDomain: "singkiranemia.firebaseapp.com",
+      databaseURL: "https://singkiranemia-default-rtdb.firebaseio.com",
+      projectId: "singkiranemia",
+      storageBucket: "singkiranemia.firebasestorage.app",
+      messagingSenderId: "1084321478178",
+      appId: "1:1084321478178:web:041668eddda59b3e46bc7b",
+      measurementId: "G-SMPDBPQW6E"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Toggle forms
+    document.getElementById('showRegister').onclick = function(e) {
+      e.preventDefault();
+      document.getElementById('loginForm').classList.add('hidden');
+      document.getElementById('registerForm').classList.remove('hidden');
+      document.getElementById('formTitle').textContent = 'Registrasi Admin';
+      document.getElementById('error').textContent = '';
+    };
+    document.getElementById('showLogin').onclick = function(e) {
+      e.preventDefault();
+      document.getElementById('registerForm').classList.add('hidden');
+      document.getElementById('loginForm').classList.remove('hidden');
+      document.getElementById('formTitle').textContent = 'Login Admin';
+      document.getElementById('error').textContent = '';
+    };
+
+    // Login
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = '';
+
+      if (!username || !password) {
+        errorDiv.textContent = 'Username dan password wajib diisi.';
+        return;
+      }
+
+      try {
+        const snapshot = await get(child(ref(db), `admins/${username}`));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          if (data.password === password) {
+            window.location.href = '/src/dashboard.html';
+          } else {
+            errorDiv.textContent = 'Password salah.';
+          }
+        } else {
+          errorDiv.textContent = 'Username tidak ditemukan.';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Terjadi kesalahan. Coba lagi.';
+      }
+    });
+
+    // Register
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const username = document.getElementById('reg_username').value.trim();
+      const password = document.getElementById('reg_password').value.trim();
+      const errorDiv = document.getElementById('error');
+      errorDiv.textContent = '';
+
+      if (!username || !password) {
+        errorDiv.textContent = 'Username dan password wajib diisi.';
+        return;
+      }
+
+      try {
+        const snapshot = await get(child(ref(db), `admins/${username}`));
+        if (snapshot.exists()) {
+          errorDiv.textContent = 'Username sudah terdaftar.';
+        } else {
+          await set(ref(db, `admins/${username}`), { password });
+          errorDiv.textContent = 'Registrasi berhasil! Silakan login.';
+          document.getElementById('registerForm').classList.add('hidden');
+          document.getElementById('loginForm').classList.remove('hidden');
+          document.getElementById('formTitle').textContent = 'Login Admin';
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Terjadi kesalahan. Coba lagi.';
+      }
+    });
+  </script>
+</body>
+</html>

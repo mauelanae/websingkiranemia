@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Perbandingan Nilai Hb</title>
+  <link href="./output.css" rel="stylesheet">
+
+</head>
+<body class="flex items-center justify-center min-h-screen">
+  <div class="bg-white p-8 w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-6 text-center">Input Tes HB</h1>
+    <form id="hbForm" class="space-y-4">
+      <div>
+        <label for="nama_pasien" class="block text-sm font-medium text-gray-700 mb-2">Nama Pasien</label>
+        <input type="text" id="nama_pasien" name="nama_pasien"
+          class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          required>
+      </div>
+      <div>
+        <label for="tanggal" class="block text-sm font-medium text-gray-700 mb-2">Tanggal Pemeriksaan</label>
+        <input type="date" id="tanggal" name="tanggal"
+          class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          required>
+      </div>
+      <div>
+        <label for="nilai_hb" class="block text-sm font-medium text-gray-700 mb-2">Nilai HB (g/dL)</label>
+        <input type="number" step="0.1" id="nilai_hb" name="nilai_hb"
+          class="w-full bg-[#E4E4E4] rounded-full px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          required>
+      </div>
+      <div class="flex justify-center">
+        <button type="button" id="cekStatus"
+          class="bg-[#01A4C0] text-white px-[100px] py-2 rounded-full font-bold hover:bg-[#0188a3] transition-all">Lihat
+          Status HB</button>
+      </div>
+      <hr class="my-4">
+    </form>
+    <div id="statusSection" class="mt-2 hidden">
+      <label class="">Status HB</label>
+      <div class="mb-4 bg-[#E4E4E4] rounded-3xl px-3 py-8">
+        <div class="mb-2">
+          <span class="font-semibold">Status HB:</span>
+          <span id="statusHb" class="ml-2"></span>
+        </div>
+        <div>
+          <span class="font-semibold">Tips:</span>
+          <span id="tipsHb" class="ml-2"></span>
+        </div>
+        <div class="mt-4">
+          <span class="font-semibold">Perbandingan Nilai HB:</span>
+          <span id="perbandinganHb" class="ml-2"></span>
+        </div>
+      </div>
+      <div class="flex justify-center">
+        <button type="button" id="kirimPeneliti"
+          class="bg-[#01A4C0] text-white px-[85px] py-2 rounded-full font-bold hover:bg-[#0188a3] transition-all">Kirim
+          HB ke
+          Peneliti</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="popupKonfirmasi" class="fixed inset-0 bg-black bg-opacity-40 items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
+      <h2 class="text-lg font-bold mb-4">Konfirmasi</h2>
+      <p class="mb-6">Apakah Anda yakin ingin mengirim data HB ke peneliti?</p>
+      <div class="flex justify-center gap-4">
+        <button id="btnBatal" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
+        <button id="btnKonfirmasi" class="px-4 py-2 rounded bg-[#01A4C0] text-white hover:bg-[#0188a3]">Kirim</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="popupSukses" class="fixed inset-0 bg-black bg-opacity-40 items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full text-center">
+      <h2 class="text-lg font-bold mb-4">Sukses</h2>
+      <p class="mb-6">Data HB berhasil dikirim ke peneliti.</p>
+      <button id="btnTutupSukses" class="px-4 py-2 rounded bg-[#01A4C0] text-white hover:bg-[#0188a3]">Tutup</button>
+    </div>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-app.js";
+    import { getDatabase, ref, push, get, child, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/11.7.3/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCjTDV7aEs2X9WEBqBQ5ydqVVqVn5F5Lbk",
+      authDomain: "singkiranemia.firebaseapp.com",
+      databaseURL: "https://singkiranemia-default-rtdb.firebaseio.com",
+      projectId: "singkiranemia",
+      storageBucket: "singkiranemia.firebasestorage.app",
+      messagingSenderId: "1084321478178",
+      appId: "1:1084321478178:web:041668eddda59b3e46bc7b",
+      measurementId: "G-SMPDBPQW6E"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    function getHbStatus(nilaiHb) {
+      let status = "";
+      let tips = [];
+
+      if (nilaiHb > 11) {
+        status = "Normal";
+        tips = [
+          "Tetap konsumsi makanan tinggi zat besi seperti daging merah, hati ayam, bayam, dan kacang-kacangan.",
+          "Lanjutkan konsumsi tablet tambah darah sesuai anjuran bidan/dokter kandungan.",
+          "Hindari konsumsi teh/kopi berdekatan dengan waktu makan agar penyerapan zat besi tidak terganggu.",
+          "Lakukan pemeriksaan Hb secara berkala."
+        ];
+      } else if (nilaiHb >= 10) {
+        status = "Anemia Ringan";
+        tips = [
+          "Tingkatkan konsumsi makanan sumber zat besi (hati, daging, sayur berwarna hijau tua).",
+          "Tambahkan sumber vitamin C (jeruk, tomat) agar penyerapan zat besi lebih optimal.",
+          "Minum tablet tambah darah setiap hari (1 tablet/hari).",
+          "Istirahat cukup dan hindari aktivitas berat.",
+          "Perhatikan cara tepat meminum tablet tambah darah anda.",
+          "Konsultasi rutin ke fasilitas kesehatan."
+        ];
+      } else if (nilaiHb >= 7) {
+        status = "Anemia Sedang";
+        tips = [
+          "Segera konsultasi ke bidan/dokter kandungan untuk mendapat penanganan lebih lanjut.",
+          "Konsumsi tablet tambah darah 2 kali sehari (jika disarankan tenaga kesehatan).",
+          "Perbanyak asupan zat besi hewani (daging, ikan, telur).",
+          "Sertakan buah tinggi vitamin C di setiap makan.",
+          "Pertimbangkan suplemen zat besi tambahan jika diresepkan.",
+          "Perhatikan cara tepat meminum tablet tambah darah anda."
+        ];
+      } else {
+        status = "Anemia Berat";
+        tips = [
+          "Segera ke fasilitas kesehatan untuk evaluasi dan tindakan medis lebih lanjut.",
+          "Kemungkinan perlu penanganan lanjut (misalnya transfusi darah).",
+          "Ikuti semua saran tenaga medis, dan pastikan istirahat total jika disarankan.",
+          "Perhatikan tanda bahaya kehamilan dan konsultasi intensif ke bidan / dokter kandungan."
+        ];
+      }
+
+      return { status, tips };
+    }
+
+    let hbDataCache = null;
+    let lastHbValue = null;
+
+    // Fungsi untuk mencari userId berdasarkan nama pasien
+    async function findUserIdByNama(namaPasien) {
+      const usersRef = ref(db, 'users');
+      const snapshot = await get(usersRef);
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        for (const [userId, userData] of Object.entries(users)) {
+          if (userData.nama && userData.nama.toLowerCase() === namaPasien.toLowerCase()) {
+            return userId;
+          }
+        }
+      }
+      return null;
+    }
+
+    // Fungsi untuk mendapatkan nilai HB terakhir
+    async function getLastHbValue(userId) {
+      const hbRef = ref(db, `users/${userId}/hb`);
+      const snapshot = await get(hbRef);
+      if (snapshot.exists()) {
+        const hbs = Object.values(snapshot.val());
+        if (hbs.length > 0) {
+          // Urutkan berdasarkan tanggal, ambil yang terbaru
+          hbs.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+          return hbs[0].nilaiHb || hbs[0].nilai_hb;
+        }
+      }
+      return null;
+    }
+
+    // Tampilkan status HB dan perbandingan saat tombol "Lihat Status HB" diklik
+    document.getElementById("cekStatus").addEventListener("click", async function () {
+      const namaPasien = document.getElementById("nama_pasien").value.trim();
+      const tanggal = document.getElementById("tanggal").value;
+      const nilaiHb = parseFloat(document.getElementById("nilai_hb").value);
+
+      if (!namaPasien || !tanggal || isNaN(nilaiHb)) {
+        alert("Silakan isi nama pasien, tanggal, dan nilai HB terlebih dahulu.");
+        return;
+      }
+
+      // Temukan userId berdasarkan nama pasien
+      const userId = await findUserIdByNama(namaPasien);
+      if (!userId) {
+        alert("Pasien dengan nama tersebut tidak ditemukan.");
+        return;
+      }
+
+      // Ambil nilai HB terakhir
+      lastHbValue = await getLastHbValue(userId);
+
+      const statusResult = getHbStatus(nilaiHb);
+      document.getElementById("statusHb").textContent = statusResult.status;
+
+      // Tampilkan tips dalam bentuk list
+      if (Array.isArray(statusResult.tips)) {
+        const ul = document.createElement("ul");
+        ul.className = "list-disc ml-5";
+        statusResult.tips.forEach(function (tip) {
+          const li = document.createElement("li");
+          li.textContent = tip;
+          ul.appendChild(li);
+        });
+        document.getElementById("tipsHb").innerHTML = "";
+        document.getElementById("tipsHb").appendChild(ul);
+      } else {
+        document.getElementById("tipsHb").textContent = statusResult.tips;
+      }
+
+      // Tampilkan perbandingan nilai HB
+      let perbandinganText = "";
+      if (lastHbValue !== null && lastHbValue !== undefined) {
+        if (nilaiHb > lastHbValue) {
+          perbandinganText = `Nilai HB naik dari ${lastHbValue} ke ${nilaiHb}`;
+        } else if (nilaiHb < lastHbValue) {
+          perbandinganText = `Nilai HB turun dari ${lastHbValue} ke ${nilaiHb}`;
+        } else {
+          perbandinganText = `Nilai HB tetap (${nilaiHb})`;
+        }
+      } else {
+        perbandinganText = "Ini adalah data HB pertama untuk pasien ini.";
+      }
+      document.getElementById("perbandinganHb").textContent = perbandinganText;
+
+      document.getElementById("statusSection").classList.remove("hidden");
+
+      hbDataCache = {
+        tanggal: tanggal,
+        nilaiHb: nilaiHb,
+        status: statusResult.status,
+        tips: statusResult.tips,
+        nama_pasien: namaPasien
+      };
+      // Simpan userId untuk proses kirim
+      hbDataCache.userId = userId;
+    });
+
+    // Tampilkan popup konfirmasi saat tombol "Kirim HB ke Peneliti" diklik
+    document.getElementById("kirimPeneliti").addEventListener("click", function () {
+      if (!hbDataCache) {
+        alert("Silakan cek status HB terlebih dahulu.");
+        return;
+      }
+      document.getElementById("popupKonfirmasi").classList.remove("hidden");
+      document.getElementById("popupKonfirmasi").classList.add("flex");
+    });
+
+    // Tombol batal pada popup konfirmasi
+    document.getElementById("btnBatal").addEventListener("click", function () {
+      document.getElementById("popupKonfirmasi").classList.add("hidden");
+      document.getElementById("popupKonfirmasi").classList.remove("flex");
+    });
+
+    // Tombol konfirmasi pada popup konfirmasi
+    document.getElementById("btnKonfirmasi").addEventListener("click", function () {
+      if (!hbDataCache || !hbDataCache.userId) {
+        alert("Data pasien tidak ditemukan. Silakan cek status HB terlebih dahulu.");
+        return;
+      }
+      push(ref(db, 'users/' + hbDataCache.userId + '/hb'), {
+        tanggal: hbDataCache.tanggal,
+        nilaiHb: hbDataCache.nilaiHb,
+        status: hbDataCache.status,
+        tips: hbDataCache.tips,
+        nama_pasien: hbDataCache.nama_pasien
+      })
+        .then(() => {
+          document.getElementById("popupKonfirmasi").classList.add("hidden");
+          document.getElementById("popupKonfirmasi").classList.remove("flex");
+          document.getElementById("popupSukses").classList.remove("hidden");
+          document.getElementById("popupSukses").classList.add("flex");
+        })
+        .catch(error => {
+          alert("Gagal menyimpan data Hb: " + error.message);
+        });
+    });
+
+    // Tombol tutup pada popup sukses
+    document.getElementById("btnTutupSukses").addEventListener("click", function () {
+      document.getElementById("popupSukses").classList.add("hidden");
+      document.getElementById("popupSukses").classList.remove("flex");
+      document.getElementById("hbForm").reset();
+      document.getElementById("statusSection").classList.add("hidden");
+      hbDataCache = null;
+      lastHbValue = null;
+      window.location.href = "/src/index.html";
+    });
+  </script>
+</body>
+</html>

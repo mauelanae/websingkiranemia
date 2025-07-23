@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Edukasi</title>
+    <link href="./output.css" rel="stylesheet">
+</head>
+
+<body class="bg-white">
+  <div class="min-h-screen flex flex-col md:flex-row items-center justify-center px-6 md:px-28 gap-10 md:gap-28 py-10">
+    
+    <!-- Kiri: Teks -->
+    <div class="w-full md:w-1/2 md:text-left">
+      <h1 class="text-[40px] md:text-5xl font-bold text-black leading-snug md:leading-tight">
+        Cegah Anemia <br /> Pada Ibu Hamil
+      </h1>
+      <p class="text-black text-sm md:text-lg mt-4 mb-6 text-justify md:whitespace-pre-line">
+        Aplikasi ini membantu ibu hamil memahami anemia,
+        memantau kadar Hb, dan mendapatkan edukasi kesehatan.
+        <a href="/src/lihatnilaihb.html" class="text-xs md:text-sm underline text-[#01A4C0] ml-1">Lihat Nilai Hb</a>
+      </p>
+      <div class="flex justify-center md:justify-start">
+        <button onclick="nowStart()"
+        class="bg-[#01A4C0] text-white text-sm md:text-lg px-26 md:px-10 py-2 rounded-full font-bold hover:bg-[#0188a3] transition-all">
+        Mulai Sekarang
+      </button>
+      </div>
+    </div>
+
+    <!-- Kanan: Gambar -->
+    <div class="flex justify-center">
+      <img src="../assets/icon2.svg" alt="icon2" class="w-72 md:w-full max-w-sm" />
+    </div>
+
+  </div>
+
+  <script>
+    function nowStart() {
+        window.location.href = '/src/formibuhamil.html';
+    }
+  </script>
+</body>
+
+</html>
